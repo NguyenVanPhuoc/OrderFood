@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.lesson3.service.ProductServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2025-10-15T07:55:50.392Z" hostname="DEVNTA008" time="0.041">
+<testsuite name="com.example.lesson3.service.ProductServiceTest" tests="11" skipped="0" failures="0" errors="0" timestamp="2026-03-10T07:08:08.649Z" hostname="7d7c05515814" time="0.031">
   <properties/>
-  <testcase name="testFindAllWithFilter_WithStatusOnly()" classname="com.example.lesson3.service.ProductServiceTest" time="0.007"/>
-  <testcase name="testFindAllWithFilter_WithKeywordAndStatus()" classname="com.example.lesson3.service.ProductServiceTest" time="0.002"/>
-  <testcase name="testDeleteById_NoProductDoesNothing()" classname="com.example.lesson3.service.ProductServiceTest" time="0.002"/>
-  <testcase name="testFindAllWithFilter_AllNull()" classname="com.example.lesson3.service.ProductServiceTest" time="0.003"/>
-  <testcase name="testFindById()" classname="com.example.lesson3.service.ProductServiceTest" time="0.002"/>
-  <testcase name="testDeleteById_WithImageDeletesFileAndRepository()" classname="com.example.lesson3.service.ProductServiceTest" time="0.004"/>
-  <testcase name="testFindAllWithFilter_WithKeywordOnly()" classname="com.example.lesson3.service.ProductServiceTest" time="0.002"/>
-  <testcase name="testFindByIds()" classname="com.example.lesson3.service.ProductServiceTest" time="0.002"/>
-  <testcase name="testFindByStoreId()" classname="com.example.lesson3.service.ProductServiceTest" time="0.001"/>
-  <testcase name="testDeleteMultipleProducts_DeletesRepositoryAfterLoop()" classname="com.example.lesson3.service.ProductServiceTest" time="0.004"/>
-  <testcase name="testSave_PreservesCreatedAtWhenUpdating()" classname="com.example.lesson3.service.ProductServiceTest" time="0.003"/>
-  <system-out><![CDATA[S? l??ng s?n ph?m c?n xóa: 2
-?ang x? lý s?n ph?m ID: 1
-S?n ph?m không có ?nh
-?ang x? lý s?n ph?m ID: 2
-S?n ph?m không có ?nh
-?ã xóa 2 s?n ph?m kh?i database
+  <testcase name="testFindAllWithFilter_WithStatusOnly()" classname="com.example.lesson3.service.ProductServiceTest" time="0.016"/>
+  <testcase name="testFindAllWithFilter_WithKeywordAndStatus()" classname="com.example.lesson3.service.ProductServiceTest" time="0.0"/>
+  <testcase name="testDeleteById_NoProductDoesNothing()" classname="com.example.lesson3.service.ProductServiceTest" time="0.001"/>
+  <testcase name="testFindAllWithFilter_AllNull()" classname="com.example.lesson3.service.ProductServiceTest" time="0.001"/>
+  <testcase name="testFindById()" classname="com.example.lesson3.service.ProductServiceTest" time="0.0"/>
+  <testcase name="testDeleteById_WithImageDeletesFileAndRepository()" classname="com.example.lesson3.service.ProductServiceTest" time="0.007"/>
+  <testcase name="testFindAllWithFilter_WithKeywordOnly()" classname="com.example.lesson3.service.ProductServiceTest" time="0.001"/>
+  <testcase name="testFindByIds()" classname="com.example.lesson3.service.ProductServiceTest" time="0.0"/>
+  <testcase name="testFindByStoreId()" classname="com.example.lesson3.service.ProductServiceTest" time="0.0"/>
+  <testcase name="testDeleteMultipleProducts_DeletesRepositoryAfterLoop()" classname="com.example.lesson3.service.ProductServiceTest" time="0.002"/>
+  <testcase name="testSave_PreservesCreatedAtWhenUpdating()" classname="com.example.lesson3.service.ProductServiceTest" time="0.001"/>
+  <system-out><![CDATA[Số lượng sản phẩm cần xóa: 2
+Đang xử lý sản phẩm ID: 1
+Sản phẩm không có ảnh
+Đang xử lý sản phẩm ID: 2
+Sản phẩm không có ảnh
+Đã xóa 2 sản phẩm khỏi database
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

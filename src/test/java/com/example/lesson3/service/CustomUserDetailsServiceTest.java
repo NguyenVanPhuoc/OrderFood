@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.example.lesson3.model.CustomUserDetails;
@@ -19,11 +19,11 @@ import java.util.Optional;
 @SpringBootTest
 public class CustomUserDetailsServiceTest {
 
-    @Mock
-    private UserRepository userRepository; 
+    @MockBean
+    private UserRepository userRepository;
 
-    @InjectMocks
-    private CustomUserDetailsService customUserDetailsService; 
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     private User user;
 

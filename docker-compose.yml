@@ -32,6 +32,21 @@ services:
     networks:
       - bau_food_network
 
+  # Chạy unit test - dùng H2 in-memory, KHÔNG cần MySQL
+  test:
+    build:
+      context: .
+    volumes:
+      - .:/app
+    command: ["./gradlew", "test", "--no-daemon"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+    profiles:
+      - test
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: bau_food_phpmyadmin

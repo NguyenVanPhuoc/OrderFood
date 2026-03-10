@@ -93,7 +93,7 @@ public class UserService {
 			user.setAddress(userDetails.getAddress());
 			user.setAvatar(userDetails.getAvatar());
 			if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-				user.setPassword(userDetails.getPassword());             
+				user.setPassword(PasswordUtil.hashPassword(userDetails.getPassword()));
 			}
 			return userRepository.save(user);
 		}).orElse(null);

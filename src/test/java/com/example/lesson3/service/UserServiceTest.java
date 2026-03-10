@@ -96,11 +96,14 @@ public class UserServiceTest {
         updateDetails.setRole(2);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         User result = userService.updateUser(1L, updateDetails);
+        assertNotNull(result);
         assertEquals("newuser", result.getUsername());
         assertEquals("new@example.com", result.getEmail());
+        assertNotEquals("newpass", result.getPassword());
+        assertTrue(result.getPassword().startsWith("$2"));
     }
 
     // Test deleteUser

@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.lesson3.service.OrderServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2025-10-15T07:55:50.141Z" hostname="DEVNTA008" time="0.249">
+<testsuite name="com.example.lesson3.service.OrderServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-03-10T07:08:08.608Z" hostname="7d7c05515814" time="0.04">
   <properties/>
-  <testcase name="testDeleteOrder()" classname="com.example.lesson3.service.OrderServiceTest" time="0.213"/>
-  <testcase name="testUpdateOrderStatus()" classname="com.example.lesson3.service.OrderServiceTest" time="0.004"/>
-  <testcase name="testDeleteMultipleOrders()" classname="com.example.lesson3.service.OrderServiceTest" time="0.001"/>
-  <testcase name="testCreateOrder_Success()" classname="com.example.lesson3.service.OrderServiceTest" time="0.004"/>
-  <testcase name="testGetOrderById()" classname="com.example.lesson3.service.OrderServiceTest" time="0.001"/>
-  <testcase name="testFindOrderedProductsToday_Aggregates()" classname="com.example.lesson3.service.OrderServiceTest" time="0.002"/>
-  <testcase name="testFindUnpaidOrdersByUser()" classname="com.example.lesson3.service.OrderServiceTest" time="0.002"/>
-  <testcase name="testDeleteOrderItem_DeletesOrderWhenLastItem()" classname="com.example.lesson3.service.OrderServiceTest" time="0.003"/>
-  <testcase name="testDeleteOrderItem_RecalculatesTotalWhenRemaining()" classname="com.example.lesson3.service.OrderServiceTest" time="0.007"/>
-  <testcase name="testCreateOrder_InvalidRequestThrows()" classname="com.example.lesson3.service.OrderServiceTest" time="0.003"/>
-  <system-out><![CDATA[request: com.example.lesson3.request.OrderRequest@167da81d
-User found: com.example.lesson3.model.User@24c6a471
-Store set: com.example.lesson3.model.Store@190677c6
+  <testcase name="testDeleteOrder()" classname="com.example.lesson3.service.OrderServiceTest" time="0.023"/>
+  <testcase name="testUpdateOrderStatus()" classname="com.example.lesson3.service.OrderServiceTest" time="0.005"/>
+  <testcase name="testDeleteMultipleOrders()" classname="com.example.lesson3.service.OrderServiceTest" time="0.0"/>
+  <testcase name="testCreateOrder_Success()" classname="com.example.lesson3.service.OrderServiceTest" time="0.002"/>
+  <testcase name="testGetOrderById()" classname="com.example.lesson3.service.OrderServiceTest" time="0.0"/>
+  <testcase name="testFindOrderedProductsToday_Aggregates()" classname="com.example.lesson3.service.OrderServiceTest" time="0.003"/>
+  <testcase name="testFindUnpaidOrdersByUser()" classname="com.example.lesson3.service.OrderServiceTest" time="0.0"/>
+  <testcase name="testDeleteOrderItem_DeletesOrderWhenLastItem()" classname="com.example.lesson3.service.OrderServiceTest" time="0.001"/>
+  <testcase name="testDeleteOrderItem_RecalculatesTotalWhenRemaining()" classname="com.example.lesson3.service.OrderServiceTest" time="0.003"/>
+  <testcase name="testCreateOrder_InvalidRequestThrows()" classname="com.example.lesson3.service.OrderServiceTest" time="0.0"/>
+  <system-out><![CDATA[request: com.example.lesson3.request.OrderRequest@491afa9b
+User found: com.example.lesson3.model.User@147a8d7c
+Store set: com.example.lesson3.model.Store@693f9ab5
 request: null
-request: com.example.lesson3.request.OrderRequest@3b8b1ba9
+request: com.example.lesson3.request.OrderRequest@25bc36
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
