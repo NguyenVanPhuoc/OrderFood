@@ -1,22 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.lesson3.service.StoreServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-03-10T07:08:08.680Z" hostname="7d7c05515814" time="0.012">
+<testsuite name="com.example.lesson3.service.StoreServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-03-31T04:54:55.051Z" hostname="NTA-PHUOCNV" time="0.015">
   <properties/>
-  <testcase name="testDeleteMultipleStores()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
-  <testcase name="testFindById()" classname="com.example.lesson3.service.StoreServiceTest" time="0.0"/>
+  <testcase name="testDeleteMultipleStores()" classname="com.example.lesson3.service.StoreServiceTest" time="0.002"/>
+  <testcase name="testFindById()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
   <testcase name="testDeleteStore_WhenExists()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
   <testcase name="testGetAllStores()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
-  <testcase name="testSaveStore()" classname="com.example.lesson3.service.StoreServiceTest" time="0.004"/>
+  <testcase name="testSaveStore()" classname="com.example.lesson3.service.StoreServiceTest" time="0.002"/>
   <testcase name="testFindAllWithFilter_StatusOnly()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
   <testcase name="testFindAllWithFilter_None()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
-  <testcase name="testDeleteStore_WhenNotExists()" classname="com.example.lesson3.service.StoreServiceTest" time="0.0"/>
-  <testcase name="testFindAllWithFilter_KeywordOnly()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
-  <testcase name="testFindAllWithFilter_KeywordAndStatus()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
-  <system-out><![CDATA[Số lượng cửa hàng cần xóa: 2
-Đang xử lý cửa hàng ID: 1
-Cửa hàng không có ảnh
-Đang xử lý cửa hàng ID: 2
-Cửa hàng không có ảnh
-Đã xóa 2 cửa hàng khỏi database
+  <testcase name="testDeleteStore_WhenNotExists()" classname="com.example.lesson3.service.StoreServiceTest" time="0.001"/>
+  <testcase name="testFindAllWithFilter_KeywordOnly()" classname="com.example.lesson3.service.StoreServiceTest" time="0.003"/>
+  <testcase name="testFindAllWithFilter_KeywordAndStatus()" classname="com.example.lesson3.service.StoreServiceTest" time="0.002"/>
+  <system-out><![CDATA[2026-03-31 11:54:55.051  INFO 9404 --- [    Test worker] c.example.lesson3.service.StoreService   : Đã xóa 2 cửa hàng
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

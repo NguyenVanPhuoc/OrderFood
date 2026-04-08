@@ -37,11 +37,13 @@ dependencies {
     implementation 'mysql:mysql-connector-java:8.0.33'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.5'
     implementation 'org.jsoup:jsoup:1.17.2'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
    
     runtimeOnly 'mysql:mysql-connector-java'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'com.microsoft.playwright:playwright:1.40.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'com.h2database:h2'
@@ -49,11 +51,34 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// Fix Windows Unicode path issue: copy compiled classes to ASCII-safe temp dir
+	doFirst {
+		def tmpBase = new File(System.getProperty('java.io.tmpdir'), 'orderfood_test')
+		if (tmpBase.exists()) tmpBase.deleteDir()
+		tmpBase.mkdirs()
+
+		def testSrc = new File(buildDir, 'classes/java/test')
+		def testTmp = new File(tmpBase, 'test')
+		ant.copy(todir: testTmp) { fileset(dir: testSrc) }
+
+		def mainSrc = new File(buildDir, 'classes/java/main')
+		def mainTmp = new File(tmpBase, 'main')
+		ant.copy(todir: mainTmp) { fileset(dir: mainSrc) }
+
+		classpath = files(testTmp, mainTmp) + classpath
+	}
 }
 
 bootRun {
     sourceResources sourceSets.main
     systemProperties System.properties
+}
+
+// Task cài Playwright Chromium — chạy một lần trong Dockerfile
+task installPlaywright(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.microsoft.playwright.CLI'
+    args = ['install', 'chromium']
 }
 
 configurations {

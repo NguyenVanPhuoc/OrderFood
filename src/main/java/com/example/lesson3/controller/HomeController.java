@@ -5,7 +5,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpSession;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,28 +24,27 @@ import com.example.lesson3.model.Store;
 import com.example.lesson3.model.User;
 import com.example.lesson3.request.OrderRequest;
 import com.example.lesson3.request.OrderedProductDTO;
+import com.example.lesson3.service.OrderService;
 import com.example.lesson3.service.ProductService;
 import com.example.lesson3.service.StoreService;
 import com.example.lesson3.service.UserService;
-import com.example.lesson3.service.OrderService;
 
 @Controller
 public class HomeController {
 
-	@Autowired
+	private static final Logger log = LoggerFactory.getLogger(HomeController.class);
+
 	private final StoreService storeService;
+	private final ProductService productService;
+	private final UserService userService;
+	private final OrderService orderService;
 
-	@Autowired
-	private ProductService productService;
-
-	@Autowired
-	private UserService userService;
-
-	@Autowired
-	private OrderService orderService;
-
-	public HomeController(StoreService storeService) {
+	public HomeController(StoreService storeService, ProductService productService,
+			UserService userService, OrderService orderService) {
 		this.storeService = storeService;
+		this.productService = productService;
+		this.userService = userService;
+		this.orderService = orderService;
 	}
 
 	@GetMapping("/")
@@ -71,13 +71,11 @@ public class HomeController {
 		}
 
 		List<Product> products = productService.findByStoreId(store.getId());
-
 		List<OrderedProductDTO> orderedProducts = orderService.findOrderedProductsToday(store.getId());
 
 		model.addAttribute("store", store);
 		model.addAttribute("products", products);
 		model.addAttribute("orderedProducts", orderedProducts);
-
 		model.addAttribute("contentPage", "/WEB-INF/views/store_detail.jsp");
 		model.addAttribute("pageTitle", "Trang chi tiết cửa hàng");
 		return "templates/main";
@@ -91,7 +89,7 @@ public class HomeController {
 			List<OrderedProductDTO> orderedProducts = orderService.findOrderedProductsToday(storeId);
 			return ResponseEntity.ok(orderedProducts);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Lỗi khi lấy danh sách đơn hàng: ", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi lấy danh sách đơn hàng");
 		}
 	}
@@ -103,22 +101,26 @@ public class HomeController {
 			User user = userService.findByEmail(principal.getName());
 			orderService.createOrder(user, request);
 			List<OrderedProductDTO> orderedProducts = orderService.findOrderedProductsToday(request.getStoreId());
-
 			return ResponseEntity.ok(orderedProducts);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Lỗi khi đặt hàng: ", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi đặt hàng");
 		}
 	}
 
 	@PostMapping("/orderItem/delete/{id}")
 	@ResponseBody
-	public ResponseEntity<?> deleteOrderItem(@PathVariable Long id) {
+	public ResponseEntity<?> deleteOrderItem(@PathVariable Long id, Principal principal) {
 		try {
+			// Kiểm tra quyền sở hữu: chỉ cho phép xóa item của chính mình
+			User user = userService.findByEmail(principal.getName());
+			if (!orderService.canUserDeleteOrderItem(id, user.getId())) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Không có quyền xóa sản phẩm này");
+			}
 			orderService.deleteOrderItem(id);
 			return ResponseEntity.ok().build();
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Lỗi khi xóa sản phẩm: ", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi khi xóa sản phẩm");
 		}
 	}
@@ -126,11 +128,10 @@ public class HomeController {
 	@GetMapping("/user/orders/unpaid")
 	public String getUnpaidOrders(Model model, Principal principal) {
 		User user = userService.findByEmail(principal.getName());
-
 		List<Order> unpaidOrders = orderService.findUnpaidOrdersByUser(user.getId());
 
 		double totalPrice = unpaidOrders.stream()
-				.flatMap(order -> order.getItems().stream())
+				.flatMap(order -> order.getOrderItems().stream())
 				.mapToDouble(item -> item.getQuantity() * item.getPrice())
 				.sum();
 

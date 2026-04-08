@@ -75,7 +75,7 @@ public class StoreController {
         if (bindingResult.hasErrors()) {
             if (store.getId() == null) {
                 model.addAttribute("contentPage", "/WEB-INF/views/stores/create.jsp");
-                model.addAttribute("currentPath", "/admin/products/create");
+                model.addAttribute("currentPath", "/admin/stores/create");
                 model.addAttribute("pageTitle", "Tạo mới cửa hàng");
             } else {
                 model.addAttribute("contentPage", "/WEB-INF/views/stores/edit.jsp");
@@ -102,7 +102,6 @@ public class StoreController {
         	        }
         	    }
         	    String filename = FileUploadUtil.saveFile("uploads/stores", image);
-        	    System.out.println("filename: " + filename);
         	    store.setImage("stores/" + filename);
         	} else {
         	    if (store.getId() != null) {
@@ -112,7 +111,6 @@ public class StoreController {
         	    }
         	}
         } catch (IOException e) {
-            e.printStackTrace();
             redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi khi xử lý ảnh.");
             return "redirect:/admin/stores/";
         }

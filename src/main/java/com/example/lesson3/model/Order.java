@@ -18,7 +18,7 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
-    
+
     @ManyToOne
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
@@ -29,27 +29,24 @@ public class Order {
     private Double totalPrice;
 
     private String status;
-    
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItem> items;
-    
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    
-    @Transient // Không lưu vào DB
-    private Date createdDateAsDate;
 
-    public Date getCreatedDateAsDate() {
-        return createdDateAsDate;
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        if (createdAt == null) createdAt = now;
+        if (updatedAt == null) updatedAt = now;
     }
 
-    public void setCreatedDateAsDate(Date createdDateAsDate) {
-        this.createdDateAsDate = createdDateAsDate;
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
-
 
 	public Long getId() {
 		return id;
@@ -115,14 +112,7 @@ public class Order {
 		this.updatedAt = updatedAt;
 	}
 
-	public List<OrderItem> getItems() {
-		return items;
-	}
-
-	public void setItems(List<OrderItem> items) {
-		this.items = items;
-	}
-	
+	// Dùng cho JSP với fmt:formatDate (cần java.util.Date)
 	public Date getCreatedAtAsDate() {
 	    if (createdAt == null) return null;
 	    return Date.from(createdAt.atZone(ZoneId.systemDefault()).toInstant());

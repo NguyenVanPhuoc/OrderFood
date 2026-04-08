@@ -4,6 +4,8 @@ import com.example.lesson3.model.Product;
 import com.example.lesson3.repository.ProductRepository;
 import com.example.lesson3.utils.FileUploadUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,8 @@ import java.util.Optional;
 @Service
 public class ProductService {
 
+	private static final Logger log = LoggerFactory.getLogger(ProductService.class);
+
 	@Autowired
 	private ProductRepository productRepository;
 
@@ -23,8 +27,7 @@ public class ProductService {
 		Pageable pageable = PageRequest.of(page - 1, size, sort);
 
 		if (keyword != null && !keyword.isEmpty() && status != null) {
-			return productRepository.findByStore_IdAndNameContainingIgnoreCaseAndStatus(storeId, keyword, status,
-					pageable);
+			return productRepository.findByStore_IdAndNameContainingIgnoreCaseAndStatus(storeId, keyword, status, pageable);
 		} else if (keyword != null && !keyword.isEmpty()) {
 			return productRepository.findByStore_IdAndNameContainingIgnoreCase(storeId, keyword, pageable);
 		} else if (status != null) {
@@ -36,14 +39,9 @@ public class ProductService {
 
 	public Product save(Product product) {
 		if (product.getId() != null) {
-			Optional<Product> existingProduct = productRepository.findById(product.getId());
-			if (existingProduct.isPresent()) {
-				Product oldProduct = existingProduct.get();
-				product.setCreatedAt(oldProduct.getCreatedAt());
-			}
+			productRepository.findById(product.getId()).ifPresent(old -> product.setCreatedAt(old.getCreatedAt()));
 		}
-		Product savedProduct = productRepository.save(product);
-		return savedProduct;
+		return productRepository.save(product);
 	}
 
 	public Optional<Product> findById(Long id) {
@@ -55,23 +53,10 @@ public class ProductService {
 	}
 
 	public void deleteById(Long id) {
-		Optional<Product> productOpt = productRepository.findById(id);
-		if (productOpt.isPresent()) {
-			Product product = productOpt.get();
-			if (product.getImage() != null) {
-				String imagePath = product.getImage();
-				if (imagePath.startsWith("products/")) {
-					imagePath = imagePath.substring("products/".length());
-				}
-				try {
-					FileUploadUtil.deleteFile("uploads/products", imagePath);
-				} catch (IOException e) {
-					System.err.println("Không thể xóa file ảnh: " + imagePath);
-					e.printStackTrace();
-				}
-			}
+		productRepository.findById(id).ifPresent(product -> {
+			deleteProductImage(product);
 			productRepository.deleteById(id);
-		}
+		});
 	}
 
 	public List<Product> findByIds(List<Long> ids) {
@@ -80,28 +65,24 @@ public class ProductService {
 
 	public void deleteMultipleProducts(List<Long> ids) {
 		List<Product> products = productRepository.findAllById(ids);
-		System.out.println("Số lượng sản phẩm cần xóa: " + products.size());
 		for (Product product : products) {
-			System.out.println("Đang xử lý sản phẩm ID: " + product.getId());
-			if (product.getImage() != null) {
-				String imagePath = product.getImage();
-				System.out.println("Đường dẫn ảnh gốc: " + imagePath);
-				if (imagePath.startsWith("products/")) {
-					imagePath = imagePath.substring("products/".length());
-				}
-				System.out.println("Đường dẫn ảnh sau khi xử lý: " + imagePath);
-				try {
-					FileUploadUtil.deleteFile("uploads/products", imagePath);
-					System.out.println("Đã xóa file ảnh thành công: " + imagePath);
-				} catch (IOException e) {
-					System.err.println("Không thể xóa file ảnh: " + imagePath);
-					e.printStackTrace();
-				}
-			} else {
-				System.out.println("Sản phẩm không có ảnh");
-			}
+			deleteProductImage(product);
 		}
 		productRepository.deleteAll(products);
-		System.out.println("Đã xóa " + products.size() + " sản phẩm khỏi database");
+		log.info("Đã xóa {} sản phẩm", products.size());
+	}
+
+	private void deleteProductImage(Product product) {
+		if (product.getImage() != null) {
+			String imagePath = product.getImage();
+			if (imagePath.startsWith("products/")) {
+				imagePath = imagePath.substring("products/".length());
+			}
+			try {
+				FileUploadUtil.deleteFile("uploads/products", imagePath);
+			} catch (IOException e) {
+				log.warn("Không thể xóa file ảnh product {}: {}", imagePath, e.getMessage());
+			}
+		}
 	}
 }

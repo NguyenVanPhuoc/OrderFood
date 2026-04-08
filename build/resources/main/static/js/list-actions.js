@@ -122,26 +122,36 @@ $(document).ready(function ($) {
             url: '/crawl/store',
             type: 'POST',
             contentType: 'application/json',
+            timeout: 210000, // 3.5 phút — lớn hơn server timeout (3 phút)
             data: JSON.stringify({
                 storeId: currentStoreId,
                 url: url
             }),
             success: function (response) {
-                const message = response.message || 'Crawl dữ liệu thành công';
                 const count = response.productsCount || 0;
-                $('#crawlResult').show().html(
-                    '<div class="alert alert-success">' +
-                    '<h6>' + message + '</h6>' +
-                    '<p>Đã thêm ' + count + ' sản phẩm vào cửa hàng.</p>' +
-                    '</div>'
-                );
-
                 $('#startCrawlBtn').prop('disabled', false).html('Bắt đầu Crawl');
 
-                // Tự động đóng modal sau 5 giây
-                setTimeout(function () {
-                    $('#crawlModal').modal('hide');
-                }, 5000);
+                if (count > 0) {
+                    const message = response.message || 'Crawl dữ liệu thành công';
+                    $('#crawlResult').show().html(
+                        '<div class="alert alert-success">' +
+                        '<h6>' + message + '</h6>' +
+                        '<p>Đã thêm ' + count + ' sản phẩm vào cửa hàng.</p>' +
+                        '</div>'
+                    );
+                    // Tự động đóng modal sau 5 giây
+                    setTimeout(function () {
+                        $('#crawlModal').modal('hide');
+                    }, 5000);
+                } else {
+                    $('#crawlResult').show().html(
+                        '<div class="alert alert-warning">' +
+                        '<h6>Không tìm thấy sản phẩm nào</h6>' +
+                        '<p>Crawl hoàn tất nhưng không lấy được sản phẩm. ' +
+                        'Vui lòng kiểm tra lại URL và thử lại.</p>' +
+                        '</div>'
+                    );
+                }
             },
             error: function (xhr) {
                 let errorMessage = 'Có lỗi xảy ra khi crawl dữ liệu';

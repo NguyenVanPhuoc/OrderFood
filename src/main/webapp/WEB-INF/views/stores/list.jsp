@@ -91,7 +91,7 @@
         <%@ include file="/WEB-INF/views/common/pagination.jsp" %>
 
         <!-- Modal Crawl Data -->
-        <div class="modal fade" id="crawlModal" tabindex="-1" aria-labelledby="crawlModalLabel" aria-hidden="true">
+        <div class="modal fade" id="crawlModal" tabindex="-1" aria-labelledby="crawlModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">

@@ -21,9 +21,9 @@
 			<% } %>
 			<ul class="agileinfotickwthree">
 				<li>
-					<input type="checkbox" id="brand1" value="">
+					<input type="checkbox" id="brand1" name="remember-me" value="on">
 					<label for="brand1"><span></span>Remember me</label>
-					<a href="#">Forgot password?</a>
+					<a href="${pageContext.request.contextPath}/admin/forgot-password">Forgot password?</a>
 				</li>
 			</ul>
 			<div class="aitssendbuttonw3ls">

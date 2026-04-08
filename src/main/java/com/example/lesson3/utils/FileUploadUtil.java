@@ -13,7 +13,20 @@ public class FileUploadUtil {
             return null;
         }
 
-        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String originalName = file.getOriginalFilename();
+        if (originalName == null) {
+            originalName = "file";
+        }
+
+        // Lấy phần extension, loại bỏ path traversal và ký tự đặc biệt
+        String safeName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        // Ngăn path traversal: chỉ lấy tên file, bỏ các thư mục phía trước
+        int lastSlash = safeName.lastIndexOf('/');
+        if (lastSlash >= 0) safeName = safeName.substring(lastSlash + 1);
+        lastSlash = safeName.lastIndexOf('\\');
+        if (lastSlash >= 0) safeName = safeName.substring(lastSlash + 1);
+
+        String filename = System.currentTimeMillis() + "_" + safeName;
         Path uploadPath = Paths.get(uploadDir);
 
         if (!Files.exists(uploadPath)) {
@@ -22,6 +35,10 @@ public class FileUploadUtil {
 
         try (InputStream inputStream = file.getInputStream()) {
             Path filePath = uploadPath.resolve(filename);
+            // Kiểm tra file đích nằm trong thư mục upload (chống path traversal)
+            if (!filePath.normalize().startsWith(uploadPath.normalize())) {
+                throw new IOException("Đường dẫn file không hợp lệ");
+            }
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         }
 
@@ -34,6 +51,10 @@ public class FileUploadUtil {
         }
 
         Path filePath = Paths.get(uploadDir).resolve(filename);
+        // Kiểm tra file đích nằm trong thư mục upload
+        if (!filePath.normalize().startsWith(Paths.get(uploadDir).normalize())) {
+            return;
+        }
         if (Files.exists(filePath)) {
             Files.delete(filePath);
         }

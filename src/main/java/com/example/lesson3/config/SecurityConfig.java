@@ -38,7 +38,7 @@ public class SecurityConfig {
         http
         	.antMatcher("/admin/**")
             .authorizeRequests(auth -> auth
-                .antMatchers("/admin/login").permitAll()
+                .antMatchers("/admin/login", "/admin/forgot-password", "/admin/reset-password").permitAll()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().denyAll()
             )
@@ -49,11 +49,17 @@ public class SecurityConfig {
                 .failureUrl("/admin/login?error=true")
                 .permitAll()
             )
+            .rememberMe(rm -> rm
+                .key("adminRememberMeKey")
+                .userDetailsService(userDetailsService)
+                .tokenValiditySeconds(86400)
+                .rememberMeParameter("remember-me")
+            )
             .logout(logout -> logout
                 .logoutUrl("/admin/logout")
                 .logoutSuccessUrl("/admin/login")
                 .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
+                .deleteCookies("JSESSIONID", "remember-me")
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)

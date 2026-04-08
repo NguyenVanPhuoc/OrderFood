@@ -24,7 +24,7 @@
 									</tr>
 								</thead>
 								<tbody>
-									<c:forEach var="item" items="${order.items}">
+									<c:forEach var="item" items="${order.orderItems}">
 										<tr>
 											<td class="product-name text-left">${item.product.name}</td>
 											<td class="product-quantity text-center"><span>${item.quantity}</span></td>
