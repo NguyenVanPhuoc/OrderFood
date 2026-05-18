@@ -5,6 +5,8 @@ import com.example.lesson3.service.UserService;
 import com.example.lesson3.utils.FileUploadUtil;
 import com.example.lesson3.utils.PasswordUtil;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +20,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class ProfileController {
+
+    private static final Logger log = LoggerFactory.getLogger(ProfileController.class);
 
     @Autowired
     private UserService userService;
@@ -38,6 +42,7 @@ public class ProfileController {
             @RequestParam("email") String email,
             @RequestParam("phone") String phone,
             @RequestParam("address") String address,
+            @RequestParam(value = "currentPassword", required = false) String currentPassword,
             @RequestParam(value = "password", required = false) String password,
             @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
@@ -48,17 +53,31 @@ public class ProfileController {
             String currentEmail = auth.getName();
             User currentUser = userService.findByEmail(currentEmail);
 
-            // Kiểm tra mật khẩu nếu có thay đổi
-            if (password != null && !password.isEmpty()) {
+            boolean changingEmail = !email.equals(currentEmail);
+            boolean changingPassword = password != null && !password.isEmpty();
+
+            // Yêu cầu mật khẩu hiện tại khi đổi email hoặc mật khẩu
+            if (changingEmail || changingPassword) {
+                if (currentPassword == null || currentPassword.isEmpty()) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng nhập mật khẩu hiện tại để thay đổi email hoặc mật khẩu.");
+                    return "redirect:/profile";
+                }
+                if (!PasswordUtil.checkPassword(currentPassword, currentUser.getPassword())) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Mật khẩu hiện tại không đúng.");
+                    return "redirect:/profile";
+                }
+            }
+
+            // Kiểm tra mật khẩu mới nếu có thay đổi
+            if (changingPassword) {
                 if (!password.equals(confirmPassword)) {
                     redirectAttributes.addFlashAttribute("errorMessage", "Mật khẩu xác nhận không khớp!");
                     return "redirect:/profile";
                 }
-                // Không set mật khẩu ở đây, để UserService xử lý việc hash
             }
 
             // Kiểm tra email mới có trùng với email khác không
-            if (!email.equals(currentEmail)) {
+            if (changingEmail) {
                 try {
                     User existingUser = userService.findByEmail(email);
                     if (existingUser != null && !existingUser.getId().equals(currentUser.getId())) {
@@ -99,7 +118,7 @@ public class ProfileController {
             userService.saveUser(currentUser);
 
             // Nếu email hoặc mật khẩu thay đổi, yêu cầu đăng nhập lại
-            if (!email.equals(currentEmail) || (password != null && !password.isEmpty())) {
+            if (changingEmail || changingPassword) {
                 SecurityContextHolder.clearContext();
                 redirectAttributes.addFlashAttribute("successMessage",
                         "Cập nhật thông tin thành công! Vui lòng đăng nhập lại.");
@@ -108,8 +127,11 @@ public class ProfileController {
 
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật thông tin thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi cập nhật thông tin!");
-            e.printStackTrace();
+            log.error("Error updating profile", e);
+            redirectAttributes.addFlashAttribute("errorMessage",
+                e.getMessage() != null && e.getMessage().startsWith("Chỉ chấp nhận")
+                    ? e.getMessage()
+                    : "Có lỗi xảy ra khi cập nhật thông tin!");
         }
 
         return "redirect:/profile";

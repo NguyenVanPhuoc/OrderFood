@@ -71,6 +71,17 @@
 							    </div>
 							</div>
 
+                            <div class="form-group">
+							    <label for="status" class="form-label required-field">Trạng thái</label>
+							    <div class="input-group">
+							        <span class="input-group-text"><i class="fas fa-toggle-on"></i></span>
+							        <form:select path="status" cssClass="form-select" id="status">
+							            <form:option value="1" label="Hoạt động" />
+							            <form:option value="0" label="Bị khóa" />
+							        </form:select>
+							    </div>
+							</div>
+
                              <div class="form-group">
                                  <label for="phone" class="form-label">Số điện thoại</label>
                                  <div class="input-group">

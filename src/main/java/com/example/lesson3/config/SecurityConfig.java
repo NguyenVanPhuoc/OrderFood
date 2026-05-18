@@ -1,6 +1,7 @@
 package com.example.lesson3.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -22,9 +24,12 @@ public class SecurityConfig {
 
     @Autowired
     private UserDetailsService userDetailsService;
-    
+
     @Autowired
     private CustomAuthenticationSuccessHandler authenticationSuccessHandler;
+
+    @Value("${remember.me.key:}")
+    private String rememberMeKey;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -50,7 +55,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .rememberMe(rm -> rm
-                .key("adminRememberMeKey")
+                .key((rememberMeKey != null && !rememberMeKey.isEmpty()) ? rememberMeKey : java.util.UUID.randomUUID().toString())
                 .userDetailsService(userDetailsService)
                 .tokenValiditySeconds(86400)
                 .rememberMeParameter("remember-me")
@@ -64,7 +69,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
-            .csrf(csrf -> csrf.disable());
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
 
         return http.build();
     }
@@ -75,7 +81,8 @@ public class SecurityConfig {
     public SecurityFilterChain userSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeRequests(auth -> auth
-                .antMatchers("/login", "/css/**", "/js/**", "/images/**", "/crawl/**").permitAll()
+                .antMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**").permitAll()
+                .antMatchers("/crawl/**").hasRole("ADMIN") // không để public — ngăn DoS + data manipulation
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -94,7 +101,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
-            .csrf(csrf -> csrf.disable());
+            .csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
 
         return http.build();
     }

@@ -1,8 +1,11 @@
 package com.example.lesson3.controller;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
@@ -13,10 +16,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.validation.Valid;
+
+import org.springframework.data.domain.Page;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.lesson3.model.Order;
 import com.example.lesson3.model.Product;
@@ -24,6 +35,7 @@ import com.example.lesson3.model.Store;
 import com.example.lesson3.model.User;
 import com.example.lesson3.request.OrderRequest;
 import com.example.lesson3.request.OrderedProductDTO;
+import com.example.lesson3.request.RegisterRequest;
 import com.example.lesson3.service.OrderService;
 import com.example.lesson3.service.ProductService;
 import com.example.lesson3.service.StoreService;
@@ -130,10 +142,10 @@ public class HomeController {
 		User user = userService.findByEmail(principal.getName());
 		List<Order> unpaidOrders = orderService.findUnpaidOrdersByUser(user.getId());
 
-		double totalPrice = unpaidOrders.stream()
+		BigDecimal totalPrice = unpaidOrders.stream()
 				.flatMap(order -> order.getOrderItems().stream())
-				.mapToDouble(item -> item.getQuantity() * item.getPrice())
-				.sum();
+				.map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		model.addAttribute("orders", unpaidOrders);
 		model.addAttribute("totalPrice", totalPrice);
@@ -142,15 +154,103 @@ public class HomeController {
 		return "templates/main";
 	}
 
+	@GetMapping("/user/orders/history")
+	public String getOrderHistory(
+			@RequestParam(value = "status", required = false) String status,
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			@RequestParam(value = "size", defaultValue = "10") int size,
+			Model model, Principal principal) {
+		User user = userService.findByEmail(principal.getName());
+		Page<Order> orderPage = orderService.findOrdersByUser(user.getId(), status, page, size);
+
+		model.addAttribute("orders", orderPage.getContent());
+		model.addAttribute("currentPage", page);
+		model.addAttribute("totalPages", orderPage.getTotalPages());
+		model.addAttribute("totalItems", orderPage.getTotalElements());
+		model.addAttribute("size", size);
+		model.addAttribute("status", status);
+		model.addAttribute("contentPage", "/WEB-INF/views/order_history.jsp");
+		model.addAttribute("pageTitle", "Lịch sử đơn hàng");
+		return "templates/main";
+	}
+
+	@PostMapping("/user/orders/{id}/cancel")
+	public String cancelOrder(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
+		try {
+			User user = userService.findByEmail(principal.getName());
+			orderService.cancelOrder(id, user.getId());
+			redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng đã được hủy thành công.");
+		} catch (Exception e) {
+			log.error("Lỗi khi hủy đơn hàng id={}: {}", id, e.getMessage());
+			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+		}
+		return "redirect:/user/orders/" + id;
+	}
+
+	@GetMapping("/user/orders/{id}")
+	public String getOrderDetail(@PathVariable Long id, Model model, Principal principal) {
+		User user = userService.findByEmail(principal.getName());
+		Order order = orderService.getOrderById(id);
+		if (order == null || !order.getUser().getId().equals(user.getId())) {
+			return "redirect:/user/orders/history";
+		}
+		model.addAttribute("order", order);
+		model.addAttribute("contentPage", "/WEB-INF/views/order_detail.jsp");
+		model.addAttribute("pageTitle", "Chi tiết đơn hàng #" + id);
+		return "templates/main";
+	}
+
 	@GetMapping("/login")
 	public String loginPage() {
 		return "login_user";
 	}
 
+	@GetMapping("/register")
+	public String showRegisterForm(Model model) {
+		model.addAttribute("registerRequest", new RegisterRequest());
+		return "register";
+	}
+
+	@PostMapping("/register")
+	public String processRegister(
+			@Valid @ModelAttribute("registerRequest") RegisterRequest request,
+			BindingResult bindingResult,
+			RedirectAttributes redirectAttributes,
+			Model model) {
+
+		if (!request.getPassword().equals(request.getConfirmPassword())) {
+			bindingResult.rejectValue("confirmPassword", "error.confirmPassword", "Mật khẩu xác nhận không khớp");
+		}
+		if (request.getEmail() != null && userService.isEmailTaken(request.getEmail())) {
+			bindingResult.rejectValue("email", "error.email", "Email này đã được sử dụng");
+		}
+		if (bindingResult.hasErrors()) {
+			return "register";
+		}
+
+		User user = new User();
+		user.setName(request.getName());
+		user.setEmail(request.getEmail());
+		user.setUsername(request.getEmail());
+		user.setPassword(request.getPassword());
+		user.setPhone(request.getPhone());
+		user.setAddress(request.getAddress());
+		user.setRole(2);
+		user.setStatus(1);
+		userService.createUser(user);
+
+		redirectAttributes.addFlashAttribute("successMessage", "Đăng ký thành công! Vui lòng đăng nhập.");
+		return "redirect:/login";
+	}
+
 	@GetMapping("/logout")
-	public String logout(HttpSession session) {
+	public String logout(HttpSession session, HttpServletResponse response) {
 		SecurityContextHolder.clearContext();
 		session.invalidate();
+		Cookie cookie = new Cookie("JSESSIONID", null);
+		cookie.setPath("/");
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
 		return "redirect:/login";
 	}
 }

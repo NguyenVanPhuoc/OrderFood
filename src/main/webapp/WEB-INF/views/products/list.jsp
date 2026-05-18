@@ -27,6 +27,8 @@
 	        <option value="1" ${status == 1 ? 'selected' : ''}>Còn hàng</option>
 	        <option value="2" ${status == 2 ? 'selected' : ''}>Hết hàng</option>
 	    </select>
+         <input type="hidden" name="sortBy" value="${sortBy}" />
+         <input type="hidden" name="sortDir" value="${sortDir}" />
          <button type="submit" class="btn btn-primary">Search</button>
      </form>
 
@@ -39,18 +41,18 @@
                             <input type="checkbox" id="selectAll" class="form-check-input">
                         </th>
 				        <th>
-				            <a href="javascript:void(0)" data-sort="id">
-				                ID <i class="fas fa-sort" data-sort-icon="id"></i>
+				            <a href="?page=1&sortBy=id&sortDir=${sortBy == 'id' && sortDir == 'asc' ? 'desc' : 'asc'}&keyword=${keyword}&status=${status}">
+				                ID <i class="fas ${sortBy == 'id' ? (sortDir == 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
 				            </a>
 				        </th>
 				        <th>
-				            <a href="javascript:void(0)" data-sort="name">
-				                Tên sản phẩm <i class="fas fa-sort" data-sort-icon="name"></i>
+				            <a href="?page=1&sortBy=name&sortDir=${sortBy == 'name' && sortDir == 'asc' ? 'desc' : 'asc'}&keyword=${keyword}&status=${status}">
+				                Tên sản phẩm <i class="fas ${sortBy == 'name' ? (sortDir == 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
 				            </a>
 				        </th>
 				        <th>
-				            <a href="javascript:void(0)" data-sort="price">
-				                Giá sản phẩm <i class="fas fa-sort" data-sort-icon="price"></i>
+				            <a href="?page=1&sortBy=price&sortDir=${sortBy == 'price' && sortDir == 'asc' ? 'desc' : 'asc'}&keyword=${keyword}&status=${status}">
+				                Giá sản phẩm <i class="fas ${sortBy == 'price' ? (sortDir == 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort'}"></i>
 				            </a>
 				        </th>
 				        <th>Mô tả</th>

@@ -2,6 +2,7 @@ package com.example.lesson3.model;
 
 import javax.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -26,7 +27,8 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems;
 
-    private Double totalPrice;
+    @Column(precision = 19, scale = 2)
+    private BigDecimal totalPrice;
 
     private String status;
 
@@ -80,11 +82,11 @@ public class Order {
 		this.orderItems = orderItems;
 	}
 
-	public Double getTotalPrice() {
+	public BigDecimal getTotalPrice() {
 		return totalPrice;
 	}
 
-	public void setTotalPrice(Double totalPrice) {
+	public void setTotalPrice(BigDecimal totalPrice) {
 		this.totalPrice = totalPrice;
 	}
 

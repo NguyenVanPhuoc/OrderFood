@@ -4,11 +4,11 @@
     </div>
     <nav class="flex-grow">
 	    <ul>
-	        <li class="flex items-center py-2 px-4 hover:bg-gray-700">
+	        <li class="flex items-center py-2 px-4 hover:bg-gray-700 ${currentPath == '/admin/dashboard' ? 'bg-gray-700' : ''}">
 	            <i class="fas fa-tachometer-alt"></i>
-	            <a href="#" class="ml-2">Dashboard</a>
+	            <a href="${pageContext.request.contextPath}/admin/dashboard" class="ml-2 ${currentPath == '/admin/dashboard' ? 'text-blue-400 font-bold' : ''}">Dashboard</a>
 	        </li>
-	
+
 	        <!-- Users (with submenu) -->
 			<li class="py-2 px-4 hover:bg-gray-700">
 			    <div class="flex items-center justify-between cursor-pointer" onclick="toggleSubmenu('userSubmenu')">
@@ -37,7 +37,7 @@
 			        </li>
 			    </ul>
 			</li>
-			
+
 			<!-- store (with submenu) -->
 			<li class="py-2 px-4 hover:bg-gray-700">
 			    <div class="flex items-center justify-between cursor-pointer" onclick="toggleSubmenu('storeSubmenu')">
@@ -66,17 +66,17 @@
 			        </li>
 			    </ul>
 			</li>
-			
+
 			<!-- order (with submenu) -->
-			 <li class="flex items-center py-2 px-4 hover:bg-gray-700">
+			 <li class="flex items-center py-2 px-4 hover:bg-gray-700 ${currentPath == '/admin/orders' ? 'bg-gray-700' : ''}">
                 <i class="fas fa-clipboard-list"></i>
-                <a href="${pageContext.request.contextPath}/admin/orders" class="ml-2">Orders</a>
+                <a href="${pageContext.request.contextPath}/admin/orders" class="ml-2 ${currentPath == '/admin/orders' ? 'text-blue-400 font-bold' : ''}">Orders</a>
             </li>
-            
+
 	        <!-- Logout -->
 	        <sec:authorize access="isAuthenticated()">
 	            <li class="flex items-center py-2 px-4 hover:bg-gray-700">
-	                <i class="fas fa-sign-out-alt"></i> 
+	                <i class="fas fa-sign-out-alt"></i>
 	                <a href="${pageContext.request.contextPath}/admin/logout" class="ml-2">Logout</a>
 	            </li>
 	        </sec:authorize>

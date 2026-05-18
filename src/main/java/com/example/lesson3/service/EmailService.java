@@ -13,10 +13,10 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
-    @Autowired
+    @Autowired(required = false)
     private JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:noreply@baofood.com}")
     private String fromEmail;
 
     public void sendPasswordResetEmail(String toEmail, String resetLink) {

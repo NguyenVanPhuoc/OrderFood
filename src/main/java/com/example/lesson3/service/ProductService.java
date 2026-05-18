@@ -8,9 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,9 +24,16 @@ public class ProductService {
 	@Autowired
 	private ProductRepository productRepository;
 
-	public Page<Product> findAllWithFilter(Long storeId, String keyword, Integer status, int page, int size) {
-		Sort sort = Sort.by("id").ascending();
-		Pageable pageable = PageRequest.of(page - 1, size, sort);
+	private static final List<String> ALLOWED_SORT_FIELDS = Arrays.asList("id", "name", "price");
+
+	public Page<Product> findAllWithFilter(Long storeId, String keyword, Integer status, int page, int size, String sortBy, String sortDir) {
+		if (storeId == null) throw new IllegalArgumentException("storeId không được null");
+		String safeSortBy = ALLOWED_SORT_FIELDS.contains(sortBy) ? sortBy : "id";
+		Sort.Direction direction = "desc".equalsIgnoreCase(sortDir) ? Sort.Direction.DESC : Sort.Direction.ASC;
+		Sort sort = Sort.by(direction, safeSortBy);
+		int safePage = Math.max(1, page);
+		int safeSize = Math.min(Math.max(1, size), 100);
+		Pageable pageable = PageRequest.of(safePage - 1, safeSize, sort);
 
 		if (keyword != null && !keyword.isEmpty() && status != null) {
 			return productRepository.findByStore_IdAndNameContainingIgnoreCaseAndStatus(storeId, keyword, status, pageable);
@@ -63,12 +72,14 @@ public class ProductService {
 		return productRepository.findAllById(ids);
 	}
 
+	@Transactional
 	public void deleteMultipleProducts(List<Long> ids) {
+		if (ids == null || ids.isEmpty()) return;
 		List<Product> products = productRepository.findAllById(ids);
+		productRepository.deleteAll(products);
 		for (Product product : products) {
 			deleteProductImage(product);
 		}
-		productRepository.deleteAll(products);
 		log.info("Đã xóa {} sản phẩm", products.size());
 	}
 

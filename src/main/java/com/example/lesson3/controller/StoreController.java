@@ -17,12 +17,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/stores")
 public class StoreController {
+
+    private static final Logger log = LoggerFactory.getLogger(StoreController.class);
 
     @Autowired
     private StoreService storeService;
@@ -111,7 +115,8 @@ public class StoreController {
         	    }
         	}
         } catch (IOException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi khi xử lý ảnh.");
+            log.warn("File upload error (store): {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/admin/stores/";
         }
 
@@ -139,8 +144,13 @@ public class StoreController {
 
     @PostMapping("/delete-multiple")
     public String deleteMultipleStores(@RequestParam("itemIds") String itemIds, RedirectAttributes redirectAttributes) {
+        if (itemIds == null || itemIds.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Chưa chọn cửa hàng nào để xóa.");
+            return "redirect:/admin/stores";
+        }
         try {
             List<Long> ids = Arrays.stream(itemIds.split(","))
+                    .filter(s -> !s.isBlank())
                     .map(Long::parseLong)
                     .collect(Collectors.toList());
             

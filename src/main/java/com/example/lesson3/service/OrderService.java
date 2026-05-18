@@ -1,10 +1,12 @@
 package com.example.lesson3.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ import com.example.lesson3.request.OrderedProductDTO;
 public class OrderService {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+	private static final Set<String> VALID_ORDER_STATUSES = Set.of("paid", "unpaid", "cancelled");
 
 	private final OrderRepository orderRepository;
 	private final ProductRepository productRepository;
@@ -49,7 +52,9 @@ public class OrderService {
 	public Page<Order> findAllWithFilter(String keyword, String status, Long userId,
 			String startDate, String endDate, int page, int size) {
 		Sort sort = Sort.by("id").descending();
-		Pageable pageable = PageRequest.of(page - 1, size, sort);
+		int safePage = Math.max(1, page);
+		int safeSize = Math.min(Math.max(1, size), 100);
+		Pageable pageable = PageRequest.of(safePage - 1, safeSize, sort);
 
 		return orderRepository.findAll((root, query, cb) -> {
 			List<Predicate> predicates = new ArrayList<>();
@@ -87,6 +92,14 @@ public class OrderService {
 		Store store = storeRepository.findById(request.getStoreId())
 				.orElseThrow(() -> new RuntimeException("Store not found: " + request.getStoreId()));
 
+		if (store.getOrderStartTime() != null && store.getOrderEndTime() != null) {
+			LocalTime now = LocalTime.now();
+			if (now.isBefore(store.getOrderStartTime()) || now.isAfter(store.getOrderEndTime())) {
+				throw new RuntimeException("Cửa hàng hiện không nhận đơn. Giờ nhận đơn: "
+						+ store.getOrderStartTime() + " – " + store.getOrderEndTime());
+			}
+		}
+
 		Order order = new Order();
 		order.setUser(user);
 		order.setStore(store);
@@ -95,18 +108,30 @@ public class OrderService {
 		List<OrderItem> orderItems = new ArrayList<>();
 
 		for (OrderRequest.OrderItemRequest itemReq : request.getItems()) {
-			if (itemReq.getProductId() == null || itemReq.getQuantity() <= 0 || itemReq.getPrice() <= 0) {
+			if (itemReq.getProductId() == null || itemReq.getQuantity() <= 0) {
 				throw new RuntimeException("Invalid order item data");
 			}
 
 			Product product = productRepository.findById(itemReq.getProductId())
 					.orElseThrow(() -> new RuntimeException("Product not found: " + itemReq.getProductId()));
 
+			if (!product.getStore().getId().equals(store.getId())) {
+				throw new RuntimeException("Product " + product.getId() + " không thuộc store này");
+			}
+
+			if (product.getStatus() != 1) {
+				throw new RuntimeException("Sản phẩm '" + product.getName() + "' hiện không còn bán");
+			}
+
+			if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+				throw new RuntimeException("Product price is not set: " + product.getId());
+			}
+
 			OrderItem item = new OrderItem();
 			item.setOrder(order);
 			item.setProduct(product);
 			item.setQuantity(itemReq.getQuantity());
-			item.setPrice(itemReq.getPrice());
+			item.setPrice(product.getPrice()); // lấy giá từ DB, không tin client
 			item.setNote(itemReq.getNote());
 			item.setCreatedAt(LocalDateTime.now());
 			item.setUpdatedAt(LocalDateTime.now());
@@ -114,9 +139,9 @@ public class OrderService {
 		}
 
 		// Tính tổng tiền server-side thay vì tin vào client
-		double serverTotal = orderItems.stream()
-				.mapToDouble(i -> i.getPrice() * i.getQuantity())
-				.sum();
+		BigDecimal serverTotal = orderItems.stream()
+				.map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		order.setTotalPrice(serverTotal);
 		order.setOrderItems(orderItems);
 		orderRepository.save(order);
@@ -131,6 +156,13 @@ public class OrderService {
 
 		List<OrderedProductDTO> result = new ArrayList<>();
 		for (Order order : orders) {
+			if (order.getUser() == null) {
+				log.warn("Order id={} has no associated user, skipping", order.getId());
+				continue;
+			}
+			if ("cancelled".equals(order.getStatus())) {
+				continue;
+			}
 			String customerName = order.getUser().getName();
 			Long userId = order.getUser().getId();
 
@@ -147,11 +179,48 @@ public class OrderService {
 		return orderRepository.findByUserIdAndStatus(userId, "unpaid");
 	}
 
+	public Page<Order> findOrdersByUser(Long userId, String status, int page, int size) {
+		Sort sort = Sort.by("id").descending();
+		int safePage = Math.max(1, page);
+		int safeSize = Math.min(Math.max(1, size), 100);
+		Pageable pageable = PageRequest.of(safePage - 1, safeSize, sort);
+		if (status != null && !status.isEmpty()) {
+			return orderRepository.findByStatusAndUserId(status, userId, pageable);
+		}
+		return orderRepository.findByUserId(userId, pageable);
+	}
+
 	public void updateOrderStatus(Long orderId, String status) {
+		if (!VALID_ORDER_STATUSES.contains(status)) {
+			throw new IllegalArgumentException("Trạng thái không hợp lệ: " + status);
+		}
 		Order order = orderRepository.findById(orderId)
 				.orElseThrow(() -> new RuntimeException("Order not found"));
 		order.setStatus(status);
 		orderRepository.save(order);
+	}
+
+	@Transactional
+	public void cancelOrder(Long orderId, Long userId) {
+		Order order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
+		if (!order.getUser().getId().equals(userId)) {
+			throw new RuntimeException("Bạn không có quyền hủy đơn hàng này");
+		}
+		if (!"unpaid".equals(order.getStatus())) {
+			throw new RuntimeException("Chỉ có thể hủy đơn hàng chưa thanh toán");
+		}
+		Store store = order.getStore();
+		if (store.getOrderStartTime() != null && store.getOrderEndTime() != null) {
+			LocalTime now = LocalTime.now();
+			if (now.isBefore(store.getOrderStartTime()) || now.isAfter(store.getOrderEndTime())) {
+				throw new RuntimeException("Cửa hàng đã đóng cửa. Chỉ hủy đơn trong giờ: "
+						+ store.getOrderStartTime() + " – " + store.getOrderEndTime());
+			}
+		}
+		order.setStatus("cancelled");
+		orderRepository.save(order);
+		log.info("Order cancelled: orderId={}, userId={}", orderId, userId);
 	}
 
 	public void deleteOrder(Long orderId) {
@@ -160,7 +229,9 @@ public class OrderService {
 		orderRepository.delete(order);
 	}
 
+	@Transactional
 	public void deleteMultipleOrders(List<Long> orderIds) {
+		if (orderIds == null || orderIds.isEmpty()) return;
 		List<Order> orders = orderRepository.findAllById(orderIds);
 		orderRepository.deleteAll(orders);
 	}
@@ -190,9 +261,9 @@ public class OrderService {
 		if (remainingItems.isEmpty()) {
 			orderRepository.delete(order);
 		} else {
-			double newTotal = remainingItems.stream()
-					.mapToDouble(item -> item.getPrice() * item.getQuantity())
-					.sum();
+			BigDecimal newTotal = remainingItems.stream()
+					.map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
 			order.setTotalPrice(newTotal);
 			orderRepository.save(order);
 		}

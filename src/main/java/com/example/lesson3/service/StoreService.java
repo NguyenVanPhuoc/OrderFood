@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -32,7 +33,9 @@ public class StoreService {
 
     public Page<Store> findAllWithFilter(String keyword, Integer status, int page, int size) {
         Sort sort = Sort.by("id").descending();
-        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        int safePage = Math.max(1, page);
+        int safeSize = Math.min(Math.max(1, size), 100);
+        Pageable pageable = PageRequest.of(safePage - 1, safeSize, sort);
 
         if (keyword != null && !keyword.isEmpty() && status != null) {
             return storeRepository.findByNameContainingIgnoreCaseAndStatus(keyword, status, pageable);
@@ -85,8 +88,11 @@ public class StoreService {
         }
     }
 
+    @Transactional
     public void deleteMultipleStores(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return;
         List<Store> stores = storeRepository.findAllById(ids);
+        storeRepository.deleteAll(stores);
         for (Store store : stores) {
             if (store.getImage() != null) {
                 String imagePath = store.getImage();
@@ -100,7 +106,6 @@ public class StoreService {
                 }
             }
         }
-        storeRepository.deleteAll(stores);
         log.info("Đã xóa {} cửa hàng", stores.size());
     }
 

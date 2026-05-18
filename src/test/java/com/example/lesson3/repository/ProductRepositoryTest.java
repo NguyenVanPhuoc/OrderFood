@@ -8,6 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -28,8 +30,8 @@ class ProductRepositoryTest {
         store.setSlug("x2");
         store = storeRepository.save(store);
 
-        Product a = new Product(); a.setName("Black Tea"); a.setStatus(1); a.setStore(store); a.setPrice(10.0);
-        Product b = new Product(); b.setName("Green Tea"); b.setStatus(0); b.setStore(store); b.setPrice(12.5);
+        Product a = new Product(); a.setName("Black Tea"); a.setStatus(1); a.setStore(store); a.setPrice(BigDecimal.valueOf(10.0));
+        Product b = new Product(); b.setName("Green Tea"); b.setStatus(0); b.setStore(store); b.setPrice(BigDecimal.valueOf(12.5));
         productRepository.save(a); productRepository.save(b);
 
         Page<Product> all = productRepository.findByStore_Id(store.getId(), PageRequest.of(0, 10));

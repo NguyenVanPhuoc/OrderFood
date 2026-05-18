@@ -6,14 +6,14 @@
 
             <!-- First page « -->
             <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                <a class="page-link" href="?page=1&size=${size}&keyword=${keyword}&status=${status}">
+                <a class="page-link" href="?page=1&size=${size}&keyword=${keyword}&status=${status}&sortBy=${sortBy}&sortDir=${sortDir}">
                     <i class="fas fa-angle-double-left"></i>
                 </a>
             </li>
 
             <!-- Prev < -->
             <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                <a class="page-link" href="?page=${currentPage - 1}&size=${size}&keyword=${keyword}&status=${status}">
+                <a class="page-link" href="?page=${currentPage - 1}&size=${size}&keyword=${keyword}&status=${status}&sortBy=${sortBy}&sortDir=${sortDir}">
                     <i class="fas fa-angle-left"></i>
                 </a>
             </li>
@@ -31,7 +31,7 @@
 			<c:forEach var="i" begin="${startPage}" end="${endPage}">
 			    <c:if test="${i >= 1 && i <= totalPages}">
 			        <li class="page-item ${i == currentPage ? 'active' : ''}">
-			            <a class="page-link" href="?page=${i}&size=${size}&keyword=${keyword}&status=${status}">${i}</a>
+			            <a class="page-link" href="?page=${i}&size=${size}&keyword=${keyword}&status=${status}&sortBy=${sortBy}&sortDir=${sortDir}">${i}</a>
 			        </li>
 			    </c:if>
 			</c:forEach>
@@ -43,14 +43,14 @@
 
             <!-- Next > -->
             <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="?page=${currentPage + 1}&size=${size}&keyword=${keyword}&status=${status}">
+                <a class="page-link" href="?page=${currentPage + 1}&size=${size}&keyword=${keyword}&status=${status}&sortBy=${sortBy}&sortDir=${sortDir}">
                     <i class="fas fa-angle-right"></i>
                 </a>
             </li>
 
             <!-- Last page » -->
             <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="?page=${totalPages}&size=${size}&keyword=${keyword}&status=${status}">
+                <a class="page-link" href="?page=${totalPages}&size=${size}&keyword=${keyword}&status=${status}&sortBy=${sortBy}&sortDir=${sortDir}">
                     <i class="fas fa-angle-double-right"></i>
                 </a>
             </li>

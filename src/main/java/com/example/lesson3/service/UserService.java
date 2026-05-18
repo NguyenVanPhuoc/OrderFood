@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -53,7 +54,9 @@ public class UserService {
 
 	public Page<User> findAllWithFilter(String keyword, Integer status, int page, int size) {
 		Sort sort = Sort.by("id").descending();
-		Pageable pageable = PageRequest.of(page - 1, size, sort);
+		int safePage = Math.max(1, page);
+		int safeSize = Math.min(Math.max(1, size), 100);
+		Pageable pageable = PageRequest.of(safePage - 1, safeSize, sort);
 
 		if (keyword != null && !keyword.isEmpty() && status != null) {
 			return userRepository.findByNameContainingIgnoreCaseAndStatus(keyword, status, pageable);
@@ -87,6 +90,7 @@ public class UserService {
 			user.setName(userDetails.getName());
 			user.setEmail(userDetails.getEmail());
 			user.setRole(userDetails.getRole());
+			user.setStatus(userDetails.getStatus());
 			user.setPhone(userDetails.getPhone());
 			user.setAddress(userDetails.getAddress());
 			user.setAvatar(userDetails.getAvatar());
@@ -109,12 +113,18 @@ public class UserService {
 				.orElseThrow(() -> new RuntimeException("User not found"));
 	}
 
+	public boolean isEmailTaken(String email) {
+		return userRepository.existsByEmail(email);
+	}
+
+	@Transactional
 	public void deleteMultipleUsers(List<Long> ids) {
+		if (ids == null || ids.isEmpty()) return;
 		List<User> users = userRepository.findAllById(ids);
+		userRepository.deleteAll(users);
 		for (User user : users) {
 			deleteUserAvatar(user);
 		}
-		userRepository.deleteAll(users);
 		log.info("Đã xóa {} người dùng", users.size());
 	}
 

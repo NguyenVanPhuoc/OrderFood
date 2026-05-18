@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
@@ -32,6 +34,9 @@ import com.example.lesson3.utils.FileUploadUtil;
 @Controller
 @RequestMapping("/admin/users")
 public class UserController {
+
+	private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
 	@Autowired
 	private UserService userService;
 	
@@ -92,12 +97,11 @@ public class UserController {
         	MultipartFile image = request.getImageFile();
         	if (image != null && !image.isEmpty()) {
         	    String filename = FileUploadUtil.saveFile("uploads/users", image);
-        	    System.out.println("filename: " + filename);
         	    user.setAvatar("users/" + filename);
         	}
         } catch (IOException e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi khi xử lý ảnh.");
+            log.warn("File upload error (create user): {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/admin/users/";
         }
 
@@ -144,7 +148,8 @@ public class UserController {
 	    user.setRole(request.getRole());
 	    user.setPhone(request.getPhone());
 	    user.setAddress(request.getAddress());
-	    
+	    user.setStatus(request.getStatus());
+
 	    try {
         	MultipartFile image = request.getImageFile();
         	if (image != null && !image.isEmpty()) {
@@ -171,8 +176,8 @@ public class UserController {
         	    }
         	}
         } catch (IOException e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi khi xử lý ảnh.");
+            log.warn("File upload error (edit user id={}): {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/admin/users/";
         }
 
@@ -195,8 +200,13 @@ public class UserController {
     public String deleteMultipleUsers(
             @RequestParam("itemIds") String itemIds,
             RedirectAttributes redirectAttributes) {
+        if (itemIds == null || itemIds.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Chưa chọn thành viên nào để xóa.");
+            return "redirect:/admin/users";
+        }
         try {
             List<Long> ids = Arrays.stream(itemIds.split(","))
+                    .filter(s -> !s.isBlank())
                     .map(Long::parseLong)
                     .collect(Collectors.toList());
             

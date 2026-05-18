@@ -192,6 +192,7 @@
 					<div class="modal-footer">
 						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
 						<form id="confirmPaymentForm" action="" method="POST" style="display: inline;">
+							<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 							<input type="hidden" name="status" value="paid" />
 							<button type="submit" class="btn btn-success">Xác nhận</button>
 						</form>

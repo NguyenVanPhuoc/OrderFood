@@ -26,12 +26,21 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
+        String adminPassword = System.getenv("ADMIN_SEED_PASSWORD");
+        if (adminPassword == null || adminPassword.isEmpty()) {
+            adminPassword = "123456";
+        }
+        String userPassword = System.getenv("USER_SEED_PASSWORD");
+        if (userPassword == null || userPassword.isEmpty()) {
+            userPassword = "123456";
+        }
+
         // Admin
         User admin = new User();
         admin.setName("Quản trị viên");
         admin.setEmail("admin@bau.com");
         admin.setUsername("admin");
-        admin.setPassword(PasswordUtil.hashPassword("123456"));
+        admin.setPassword(PasswordUtil.hashPassword(adminPassword));
         admin.setRole(1);
         admin.setPhone("0901234567");
         admin.setAddress("Hà Nội");
@@ -43,7 +52,7 @@ public class DataSeeder implements CommandLineRunner {
         user1.setName("Nguyễn Văn A");
         user1.setEmail("user@test.com");
         user1.setUsername("user");
-        user1.setPassword(PasswordUtil.hashPassword("123456"));
+        user1.setPassword(PasswordUtil.hashPassword(userPassword));
         user1.setRole(2);
         user1.setPhone("0987654321");
         user1.setAddress("TP.HCM");

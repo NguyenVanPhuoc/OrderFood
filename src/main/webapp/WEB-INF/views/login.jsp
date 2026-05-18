@@ -14,6 +14,7 @@
 	<div class="w3layoutscontaineragileits">
 		<h2>Login</h2>
 		<form action="${pageContext.request.contextPath}/admin/login" method="post">
+			<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 			<input type="email" name="username" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
 			<% if (request.getParameter("error") != null) { %>

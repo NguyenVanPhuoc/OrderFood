@@ -25,6 +25,7 @@
         </div>
         <form action="${pageContext.request.contextPath}/profile/update" method="POST" enctype="multipart/form-data"
           id="profileForm">
+          <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
           <div class="row">
             <!-- Cột trái: Ảnh đại diện -->
             <div class="col-lg-4 mb-4 mb-lg-0">
@@ -100,8 +101,20 @@
 
                   <hr class="my-4">
                   <h5 class="mb-3">
-                    <i class="fas fa-key me-2"></i>Thay đổi mật khẩu
+                    <i class="fas fa-key me-2"></i>Thay đổi email / mật khẩu
                   </h5>
+                  <p class="text-muted small mb-3">Bắt buộc nhập mật khẩu hiện tại nếu muốn đổi email hoặc mật khẩu.</p>
+
+                  <div class="form-group mb-3">
+                    <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-light"><i class="fas fa-lock"></i></span>
+                      <input type="password" class="form-control" id="currentPassword" name="currentPassword" placeholder="Nhập mật khẩu hiện tại">
+                      <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                    </div>
+                  </div>
 
                   <div class="form-group mb-3">
                     <label for="password" class="form-label">Mật khẩu mới</label>

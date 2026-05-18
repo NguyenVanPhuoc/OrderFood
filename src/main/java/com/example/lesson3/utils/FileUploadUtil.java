@@ -3,14 +3,24 @@ package com.example.lesson3.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
+import java.util.Set;
 
 import org.springframework.web.multipart.MultipartFile;
 
 public class FileUploadUtil {
 
+    private static final Set<String> ALLOWED_TYPES = Set.of(
+        "image/jpeg", "image/png", "image/gif", "image/webp"
+    );
+
     public static String saveFile(String uploadDir, MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) {
             return null;
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
+            throw new IOException("Chỉ chấp nhận file ảnh (JPEG, PNG, GIF, WebP).");
         }
 
         String originalName = file.getOriginalFilename();

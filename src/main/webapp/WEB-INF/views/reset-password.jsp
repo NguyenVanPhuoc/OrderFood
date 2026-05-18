@@ -45,6 +45,7 @@
             </div>
         <% } else if (request.getAttribute("token") != null) { %>
             <form action="${pageContext.request.contextPath}/admin/reset-password" method="post">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <input type="hidden" name="token" value="${token}">
                 <input type="password" name="password" placeholder="Mật khẩu mới (ít nhất 6 ký tự)" required minlength="6">
                 <input type="password" name="confirmPassword" placeholder="Xác nhận mật khẩu" required minlength="6">

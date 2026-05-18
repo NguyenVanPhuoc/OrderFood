@@ -1,5 +1,6 @@
 package com.example.lesson3.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import javax.persistence.*;
@@ -22,7 +23,8 @@ public class OrderItem {
 
     private Integer quantity;
 
-    private Double price;
+    @javax.persistence.Column(precision = 19, scale = 2)
+    private BigDecimal price;
     
     @Column(columnDefinition = "TEXT")
     private String note;
@@ -65,11 +67,11 @@ public class OrderItem {
 		this.quantity = quantity;
 	}
 
-	public Double getPrice() {
+	public BigDecimal getPrice() {
 		return price;
 	}
 
-	public void setPrice(Double price) {
+	public void setPrice(BigDecimal price) {
 		this.price = price;
 	}
 

@@ -7,7 +7,6 @@ import com.example.lesson3.utils.PasswordUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 
@@ -15,11 +14,15 @@ import javax.servlet.http.HttpSession;
 
 import java.util.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
 public class UserServiceTest {
 	@InjectMocks
     private UserService userService;
@@ -142,5 +145,120 @@ public class UserServiceTest {
 
         boolean result = userService.authenticate(email, password, session);
         assertFalse(result);
+    }
+
+    // Test isEmailTaken — email đã tồn tại
+    @Test
+    void testIsEmailTaken_WhenEmailExists_ReturnsTrue() {
+        when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
+        assertTrue(userService.isEmailTaken("taken@example.com"));
+        verify(userRepository).existsByEmail("taken@example.com");
+    }
+
+    // Test isEmailTaken — email chưa tồn tại
+    @Test
+    void testIsEmailTaken_WhenEmailNotExists_ReturnsFalse() {
+        when(userRepository.existsByEmail("free@example.com")).thenReturn(false);
+        assertFalse(userService.isEmailTaken("free@example.com"));
+    }
+
+    // Test saveUser
+    @Test
+    void testSaveUser_DelegatesToRepository() {
+        User user = new User("alice", "pass");
+        user.setId(5L);
+        when(userRepository.save(user)).thenReturn(user);
+
+        User result = userService.saveUser(user);
+
+        assertNotNull(result);
+        assertEquals(5L, result.getId());
+        verify(userRepository).save(user);
+    }
+
+    // Test findByEmail — tìm thấy
+    @Test
+    void testFindByEmail_UserFound_ReturnsUser() {
+        User user = new User("bob", "pass");
+        user.setEmail("bob@example.com");
+        when(userRepository.findByEmail("bob@example.com")).thenReturn(Optional.of(user));
+
+        User result = userService.findByEmail("bob@example.com");
+
+        assertNotNull(result);
+        assertEquals("bob@example.com", result.getEmail());
+        verify(userRepository).findByEmail("bob@example.com");
+    }
+
+    // Test findByEmail — không tìm thấy → ném ngoại lệ
+    @Test
+    void testFindByEmail_UserNotFound_ThrowsRuntimeException() {
+        when(userRepository.findByEmail("nobody@example.com")).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> userService.findByEmail("nobody@example.com"));
+    }
+
+    // Test deleteMultipleUsers
+    @Test
+    void testDeleteMultipleUsers_DeletesAllAndAvatars() {
+        User u1 = new User(); u1.setId(1L); u1.setAvatar(null);
+        User u2 = new User(); u2.setId(2L); u2.setAvatar(null);
+        List<Long> ids = Arrays.asList(1L, 2L);
+        when(userRepository.findAllById(ids)).thenReturn(Arrays.asList(u1, u2));
+
+        userService.deleteMultipleUsers(ids);
+
+        verify(userRepository).findAllById(ids);
+        verify(userRepository).deleteAll(Arrays.asList(u1, u2));
+    }
+
+    // Test findAllWithFilter — keyword + status
+    @Test
+    void testFindAllWithFilter_WithKeywordAndStatus() {
+        Page<User> mockPage = new PageImpl<>(List.of(new User()));
+        when(userRepository.findByNameContainingIgnoreCaseAndStatus(eq("alice"), eq(1), any(Pageable.class)))
+                .thenReturn(mockPage);
+
+        Page<User> result = userService.findAllWithFilter("alice", 1, 1, 10);
+
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findByNameContainingIgnoreCaseAndStatus(eq("alice"), eq(1), any(Pageable.class));
+    }
+
+    // Test findAllWithFilter — chỉ keyword
+    @Test
+    void testFindAllWithFilter_WithKeywordOnly() {
+        Page<User> mockPage = new PageImpl<>(List.of(new User(), new User()));
+        when(userRepository.findByNameContainingIgnoreCase(eq("john"), any(Pageable.class)))
+                .thenReturn(mockPage);
+
+        Page<User> result = userService.findAllWithFilter("john", null, 1, 10);
+
+        assertEquals(2, result.getTotalElements());
+        verify(userRepository).findByNameContainingIgnoreCase(eq("john"), any(Pageable.class));
+    }
+
+    // Test findAllWithFilter — chỉ status
+    @Test
+    void testFindAllWithFilter_WithStatusOnly() {
+        Page<User> mockPage = new PageImpl<>(List.of(new User()));
+        when(userRepository.findByStatus(eq(0), any(Pageable.class))).thenReturn(mockPage);
+
+        Page<User> result = userService.findAllWithFilter(null, 0, 1, 10);
+
+        assertEquals(1, result.getTotalElements());
+        verify(userRepository).findByStatus(eq(0), any(Pageable.class));
+    }
+
+    // Test findAllWithFilter — không có filter
+    @Test
+    void testFindAllWithFilter_NoFilter_ReturnsAll() {
+        Page<User> mockPage = new PageImpl<>(List.of(new User(), new User(), new User()));
+        when(userRepository.findAll(any(Pageable.class))).thenReturn(mockPage);
+
+        Page<User> result = userService.findAllWithFilter(null, null, 1, 10);
+
+        assertEquals(3, result.getTotalElements());
+        verify(userRepository).findAll(any(Pageable.class));
     }
 }

@@ -40,7 +40,7 @@ public class ProductServiceTest {
         Page<Product> page = new PageImpl<>(Collections.emptyList());
         when(productRepository.findByStore_Id(eq(1L), any(Pageable.class))).thenReturn(page);
 
-        Page<Product> result = productService.findAllWithFilter(1L, null, null, 1, 10);
+        Page<Product> result = productService.findAllWithFilter(1L, null, null, 1, 10, "id", "asc");
         assertNotNull(result);
         verify(productRepository).findByStore_Id(eq(1L), any(Pageable.class));
     }
@@ -51,7 +51,7 @@ public class ProductServiceTest {
         when(productRepository.findByStore_IdAndNameContainingIgnoreCaseAndStatus(eq(1L), eq("tea"), eq(1), any(Pageable.class)))
                 .thenReturn(page);
 
-        Page<Product> result = productService.findAllWithFilter(1L, "tea", 1, 1, 10);
+        Page<Product> result = productService.findAllWithFilter(1L, "tea", 1, 1, 10, "id", "asc");
         assertNotNull(result);
         verify(productRepository).findByStore_IdAndNameContainingIgnoreCaseAndStatus(eq(1L), eq("tea"), eq(1), any(Pageable.class));
     }
@@ -62,7 +62,7 @@ public class ProductServiceTest {
         when(productRepository.findByStore_IdAndNameContainingIgnoreCase(eq(1L), eq("tea"), any(Pageable.class)))
                 .thenReturn(page);
 
-        Page<Product> result = productService.findAllWithFilter(1L, "tea", null, 1, 10);
+        Page<Product> result = productService.findAllWithFilter(1L, "tea", null, 1, 10, "id", "asc");
         assertNotNull(result);
         verify(productRepository).findByStore_IdAndNameContainingIgnoreCase(eq(1L), eq("tea"), any(Pageable.class));
     }
@@ -72,9 +72,29 @@ public class ProductServiceTest {
         Page<Product> page = new PageImpl<>(Collections.emptyList());
         when(productRepository.findByStore_IdAndStatus(eq(1L), eq(1), any(Pageable.class))).thenReturn(page);
 
-        Page<Product> result = productService.findAllWithFilter(1L, null, 1, 1, 10);
+        Page<Product> result = productService.findAllWithFilter(1L, null, 1, 1, 10, "id", "asc");
         assertNotNull(result);
         verify(productRepository).findByStore_IdAndStatus(eq(1L), eq(1), any(Pageable.class));
+    }
+
+    @Test
+    void testFindAllWithFilter_SortByNameDesc() {
+        Page<Product> page = new PageImpl<>(Collections.emptyList());
+        when(productRepository.findByStore_Id(eq(1L), any(Pageable.class))).thenReturn(page);
+
+        Page<Product> result = productService.findAllWithFilter(1L, null, null, 1, 10, "name", "desc");
+        assertNotNull(result);
+        verify(productRepository).findByStore_Id(eq(1L), any(Pageable.class));
+    }
+
+    @Test
+    void testFindAllWithFilter_InvalidSortFieldFallsBackToId() {
+        Page<Product> page = new PageImpl<>(Collections.emptyList());
+        when(productRepository.findByStore_Id(eq(1L), any(Pageable.class))).thenReturn(page);
+
+        Page<Product> result = productService.findAllWithFilter(1L, null, null, 1, 10, "malicious_field", "asc");
+        assertNotNull(result);
+        verify(productRepository).findByStore_Id(eq(1L), any(Pageable.class));
     }
 
     @Test

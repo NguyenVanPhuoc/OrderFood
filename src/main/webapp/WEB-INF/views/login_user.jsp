@@ -99,6 +99,23 @@
             cursor: pointer;
             transition: all 0.3s;
         }
+
+        .auth-links {
+            margin-top: 18px;
+            text-align: center;
+            color: #5a5a5a;
+            font-size: 14px;
+        }
+
+        .auth-links a {
+            color: #218838;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
         
         pre#tokenOutput {
 		    white-space: pre-wrap;
@@ -135,6 +152,10 @@
 		    </div>
 		    <button type="submit" class="btn-login">ĐĂNG NHẬP</button>
 		</form>
+
+        <div class="auth-links">
+            Ch&#432;a c&#243; t&#224;i kho&#7843;n? <a href="${pageContext.request.contextPath}/register">&#272;&#259;ng k&#253; ngay</a>
+        </div>
 
     </div>
 </body>

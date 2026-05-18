@@ -30,7 +30,9 @@ public class UserUpdateRequest {
 	private String email;
     
     private int role;
-    
+
+    private int status;
+
     @Pattern(regexp = "^$|^[0-9]{10,12}$", message = "Số điện thoại phải từ 10 đến 12 chữ số!")
     private String phone;
 
@@ -78,6 +80,14 @@ public class UserUpdateRequest {
 
 	public void setRole(int role) {
 		this.role = role;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
 	public String getPhone() {

@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.HashMap;
 import java.time.format.DateTimeFormatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RequestMapping("/admin/orders")
 public class AdminOrderController {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminOrderController.class);
 
     @Autowired
     private OrderService orderService;
@@ -84,21 +88,28 @@ public class AdminOrderController {
             orderService.deleteOrder(id);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa đơn hàng thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            log.error("Error deleting order id={}", id, e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi xóa đơn hàng.");
         }
         return "redirect:/admin/orders";
     }
 
     @PostMapping("/delete-multiple")
     public String deleteMultipleOrders(@RequestParam("itemIds") String itemIds, RedirectAttributes redirectAttributes) {
+        if (itemIds == null || itemIds.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Chưa chọn đơn hàng nào để xóa.");
+            return "redirect:/admin/orders";
+        }
         try {
             List<Long> ids = Arrays.stream(itemIds.split(","))
+                    .filter(s -> !s.isBlank())
                     .map(Long::parseLong)
                     .collect(Collectors.toList());
             orderService.deleteMultipleOrders(ids);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa các đơn hàng thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            log.error("Error deleting multiple orders", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi xóa đơn hàng.");
         }
         return "redirect:/admin/orders";
     }
@@ -113,7 +124,7 @@ public class AdminOrderController {
             }
 
             Map<String, Object> response = new HashMap<>();
-            response.put("customerName", order.getUser().getName());
+            response.put("customerName", order.getUser() != null ? order.getUser().getName() : "Ẩn danh");
             response.put("storeName", order.getStore().getName());
             response.put("orderDate", order.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             response.put("status", order.getStatus());
@@ -133,7 +144,8 @@ public class AdminOrderController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            log.error("Error fetching order detail for id={}", id, e);
+            return ResponseEntity.badRequest().body("Có lỗi xảy ra khi lấy thông tin đơn hàng.");
         }
     }
 }

@@ -139,6 +139,7 @@ function loadOrderedProducts() {
     $.ajax({
         url: '/orderItem/getByStore/' + storeId,
         type: 'GET',
+        cache: false,
         success: function(response) {
             console.log('Ordered products loaded:', response);
             

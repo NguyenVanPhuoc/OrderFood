@@ -18,6 +18,10 @@ public class CustomAuthenticationSuccessHandler extends SavedRequestAwareAuthent
     private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
     private final HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
 
+    public CustomAuthenticationSuccessHandler() {
+        setDefaultTargetUrl("/");
+    }
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {

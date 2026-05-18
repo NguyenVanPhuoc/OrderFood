@@ -14,6 +14,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <form action="${pageContext.request.contextPath}${deleteUrl}" method="POST" style="display: inline;">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <button type="submit" class="btn btn-danger">Xóa</button>
                 </form>
             </div>
@@ -36,6 +37,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <form action="${pageContext.request.contextPath}${deleteMultipleUrl}" method="POST" style="display: inline;">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <input type="hidden" name="itemIds" id="selectedItemIds">
                     <button type="submit" class="btn btn-danger">Xóa</button>
                 </form>

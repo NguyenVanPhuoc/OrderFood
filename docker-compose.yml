@@ -11,10 +11,13 @@ services:
       - .:/app
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bau_food
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-root}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-in-production}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
     command: ["./gradlew", "bootRun", "--no-daemon", "--continuous"]
     networks:
       - bau_food_network

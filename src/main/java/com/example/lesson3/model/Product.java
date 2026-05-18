@@ -1,9 +1,10 @@
 package com.example.lesson3.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.time.LocalDateTime;
@@ -21,8 +22,9 @@ public class Product {
     private String name;
 
     @NotNull(message = "Giá sản phẩm là bắt buộc")
-    @Min(value = 0, message = "Giá phải lớn hơn hoặc bằng 0")
-    private Double price;
+    @DecimalMin(value = "0", message = "Giá phải lớn hơn hoặc bằng 0")
+    @Column(precision = 19, scale = 2)
+    private BigDecimal price;
 
     private String description;
     
@@ -79,11 +81,11 @@ public class Product {
 		this.name = name;
 	}
 
-	public Double getPrice() {
+	public BigDecimal getPrice() {
 		return price;
 	}
 
-	public void setPrice(Double price) {
+	public void setPrice(BigDecimal price) {
 		this.price = price;
 	}
 
@@ -125,6 +127,7 @@ public class Product {
 	public String getDisplayPrice() {
 	    if (price == null) return "";
 	    NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+	    formatter.setMaximumFractionDigits(0);
 	    return formatter.format(price);
 	}
 

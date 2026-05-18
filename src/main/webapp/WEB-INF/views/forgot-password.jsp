@@ -42,6 +42,7 @@
             <div class="success-message">${message}</div>
         <% } else { %>
             <form action="${pageContext.request.contextPath}/admin/forgot-password" method="post">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                 <input type="email" name="email" placeholder="Nhập email của bạn" required>
                 <% if (request.getAttribute("error") != null) { %>
                     <div class="danger-error">${error}</div>

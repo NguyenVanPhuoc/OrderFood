@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -63,6 +64,7 @@ public class CrawlService {
         }
 
         String fullUrl = normalizeToFullUrl(inputUrlOrCode);
+        validateGrabFoodUrl(fullUrl);
         log.info("Crawling URL: {}", fullUrl);
 
         String merchantId = extractMerchantId(fullUrl);
@@ -272,7 +274,7 @@ public class CrawlService {
                     if (price > 0) {
                         Product p = new Product();
                         p.setName(name.trim());
-                        p.setPrice(price);
+                        p.setPrice(BigDecimal.valueOf(price));
                         p.setDescription(description != null ? description.trim() : "");
                         p.setImage(image != null ? image : "");
                         p.setStatus(el.selectFirst("[class*=menuItem--disable]") != null ? 2 : 1);
@@ -337,15 +339,22 @@ public class CrawlService {
     private Product buildProductFromJson(JsonNode node, Store store) {
         String name = node.get("name").asText().trim();
 
-        double price = 0;
+        BigDecimal price = BigDecimal.ZERO;
         for (String field : PRICE_FIELDS) {
             JsonNode priceNode = node.get(field);
-            if (priceNode != null && priceNode.isNumber() && priceNode.asDouble() > 0) {
-                price = priceNode.asDouble();
-                break;
+            if (priceNode != null && priceNode.isNumber()) {
+                try {
+                    BigDecimal candidate = new BigDecimal(priceNode.asText());
+                    if (candidate.compareTo(BigDecimal.ZERO) > 0) {
+                        price = candidate;
+                        break;
+                    }
+                } catch (NumberFormatException e) {
+                    log.debug("Cannot parse price field {}: {}", field, priceNode.asText());
+                }
             }
         }
-        if (price <= 0) return null;
+        if (price.compareTo(BigDecimal.ZERO) <= 0) return null;
 
         String description = "";
         JsonNode descNode = node.get("description");
@@ -435,7 +444,7 @@ public class CrawlService {
         if (name.length() > MAX_NAME_LENGTH) name = name.substring(0, MAX_NAME_LENGTH);
         product.setName(name);
 
-        if (product.getPrice() == null || product.getPrice() <= 0) return null;
+        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) return null;
 
         if (product.getDescription() != null) {
             String desc = product.getDescription().trim();
@@ -455,6 +464,12 @@ public class CrawlService {
 
         if (product.getStore() == null) return null;
         return product;
+    }
+
+    private void validateGrabFoodUrl(String url) {
+        if (url == null || !url.startsWith("https://food.grab.com/")) {
+            throw new IllegalArgumentException("Chỉ chấp nhận URL từ GrabFood (https://food.grab.com/)");
+        }
     }
 
     private String normalizeToFullUrl(String input) {

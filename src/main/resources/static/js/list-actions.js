@@ -54,38 +54,32 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Handle delete button for individual items
+    const deleteItemModal = document.getElementById('deleteItemModal');
+    const deleteItemForm = deleteItemModal ? deleteItemModal.querySelector('form') : null;
+    const baseDeleteAction = deleteItemForm ? deleteItemForm.action : '';
+
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             const itemId = this.dataset.itemId;
             console.log('Delete button clicked, data-item-id:', itemId);
-            console.log('Button dataset:', this.dataset);
 
             if (!itemId) {
                 console.error('No ID found for delete button');
                 return;
             }
 
-            const modal = document.getElementById('deleteItemModal');
-            console.log('Found modal:', modal);
-
-            if (modal) {
-                const itemIdSpan = modal.querySelector('#deleteItemId');
-                console.log('Found itemIdSpan:', itemIdSpan);
-
+            if (deleteItemModal) {
+                const itemIdSpan = deleteItemModal.querySelector('#deleteItemId');
                 if (itemIdSpan) {
                     itemIdSpan.textContent = itemId;
-                    console.log('Updated item ID in modal:', itemId);
                 }
 
-                const form = modal.querySelector('form');
-                console.log('Found form:', form);
-                if (form) {
-                    // Update form action to include the ID in the URL path
-                    form.action = form.action + itemId;
-                    console.log('Updated form action:', form.action);
+                if (deleteItemForm) {
+                    deleteItemForm.action = baseDeleteAction + itemId;
+                    console.log('Updated form action:', deleteItemForm.action);
                 }
 
-                new bootstrap.Modal(modal).show();
+                new bootstrap.Modal(deleteItemModal).show();
             } else {
                 console.error('Delete modal not found!');
             }

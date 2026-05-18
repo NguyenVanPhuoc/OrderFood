@@ -35,6 +35,19 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
+    /* CSRF: đọc cookie XSRF-TOKEN, tự động gắn vào mọi jQuery AJAX request */
+    (function($) {
+        function getCsrfToken() {
+            var m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+            return m ? decodeURIComponent(m[1]) : null;
+        }
+        $(document).ajaxSend(function(e, xhr) {
+            var token = getCsrfToken();
+            if (token) xhr.setRequestHeader('X-XSRF-TOKEN', token);
+        });
+    })(jQuery);
+    </script>
+    <script>
     function toggleMenu() {
         const menu = document.getElementById('logoutMenu');
         menu.classList.toggle('d-none');

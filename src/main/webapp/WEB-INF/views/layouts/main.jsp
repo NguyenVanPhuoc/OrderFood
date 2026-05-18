@@ -40,6 +40,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="${pageContext.request.contextPath}/js/scripts.js"></script>
+    <!-- CSRF: đọc cookie XSRF-TOKEN, tự động gắn vào mọi jQuery AJAX request -->
+    <script>
+    (function($) {
+        function getCsrfToken() {
+            var m = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+            return m ? decodeURIComponent(m[1]) : null;
+        }
+        $(document).ajaxSend(function(e, xhr) {
+            var token = getCsrfToken();
+            if (token) xhr.setRequestHeader('X-XSRF-TOKEN', token);
+        });
+    })(jQuery);
+    </script>
     <!-- Common Inline Scripts -->
     <script>
         function toggleMenu() {
