@@ -3,6 +3,13 @@ const orderStart = window.APP_CONFIG?.orderStartTime || '';
 const orderEnd = window.APP_CONFIG?.orderEndTime || '';
 const storeId = window.APP_CONFIG?.storeId || '';
 
+$.ajaxSetup({
+    beforeSend: function(xhr) {
+        const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        if (match) xhr.setRequestHeader('X-XSRF-TOKEN', decodeURIComponent(match[1]));
+    }
+});
+
 let cart = {};
 
 // ========== UTILITY FUNCTIONS ==========
@@ -241,47 +248,6 @@ function updateCart() {
 $(document).ready(function() {
     console.log('Document ready, storeId:', storeId);
     console.log('Initial order time check:', isInOrderTime(orderStart, orderEnd));
-
-    // Geolocation với jQuery AJAX
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            var latitude = position.coords.latitude;
-            var longitude = position.coords.longitude;
-            console.log("Latitude: " + latitude + ", Longitude: " + longitude, storeId);
-
-            $.ajax({
-                url: '/api/distance',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    latCurrent: latitude,
-                    lonCurrent: longitude,
-                    storeId: storeId 
-                }),
-                success: function(data) {
-                    const distanceElement = document.getElementById("distance");
-                    if (data && data.distance) {
-                        distanceElement.textContent = "Khoảng cách từ vị trí hiện tại: " + data.distance + " km";
-                    } else {
-                        distanceElement.textContent = "Không thể tính khoảng cách.";
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Distance API Error:', error);
-                    const distanceElement = document.getElementById("distance");
-                    distanceElement.textContent = "Không thể lấy khoảng cách. Vui lòng thử lại sau.";
-                }
-            });
-        }, function(error) {
-            console.error('Geolocation Error:', error);
-            document.getElementById("distance").textContent = "Vui lòng bật định vị vị trí hiện tại để xem khoảng cách.";
-        }, {
-            timeout: 10000,
-            enableHighAccuracy: true
-        });
-    } else {
-        document.getElementById("distance").textContent = "Trình duyệt của bạn không hỗ trợ định vị.";
-    }
 
     // Kiểm tra lần đầu
     checkOrderTime();

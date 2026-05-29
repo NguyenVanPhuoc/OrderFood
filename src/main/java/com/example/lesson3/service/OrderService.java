@@ -34,7 +34,7 @@ import com.example.lesson3.request.OrderedProductDTO;
 public class OrderService {
 
 	private static final Logger log = LoggerFactory.getLogger(OrderService.class);
-	private static final Set<String> VALID_ORDER_STATUSES = Set.of("paid", "unpaid", "cancelled");
+	private static final Set<String> VALID_ORDER_STATUSES = Set.of("paid", "unpaid");
 
 	private final OrderRepository orderRepository;
 	private final ProductRepository productRepository;
@@ -93,7 +93,7 @@ public class OrderService {
 				.orElseThrow(() -> new RuntimeException("Store not found: " + request.getStoreId()));
 
 		if (store.getOrderStartTime() != null && store.getOrderEndTime() != null) {
-			LocalTime now = LocalTime.now();
+			LocalTime now = LocalTime.now(java.time.ZoneId.of("Asia/Ho_Chi_Minh"));
 			if (now.isBefore(store.getOrderStartTime()) || now.isAfter(store.getOrderEndTime())) {
 				throw new RuntimeException("Cửa hàng hiện không nhận đơn. Giờ nhận đơn: "
 						+ store.getOrderStartTime() + " – " + store.getOrderEndTime());
@@ -148,6 +148,7 @@ public class OrderService {
 		log.info("Order created: userId={}, storeId={}, total={}", user.getId(), store.getId(), serverTotal);
 	}
 
+	@Transactional(readOnly = true)
 	public List<OrderedProductDTO> findOrderedProductsToday(Long storeId) {
 		LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
 		LocalDateTime endOfDay = LocalDate.now().atTime(LocalTime.MAX);
@@ -175,10 +176,20 @@ public class OrderService {
 		return result;
 	}
 
+	@Transactional(readOnly = true)
 	public List<Order> findUnpaidOrdersByUser(Long userId) {
 		return orderRepository.findByUserIdAndStatus(userId, "unpaid");
 	}
 
+	@Transactional(readOnly = true)
+	public BigDecimal calculateUnpaidTotal(Long userId) {
+		return findUnpaidOrdersByUser(userId).stream()
+			.flatMap(order -> order.getOrderItems().stream())
+			.map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	@Transactional(readOnly = true)
 	public Page<Order> findOrdersByUser(Long userId, String status, int page, int size) {
 		Sort sort = Sort.by("id").descending();
 		int safePage = Math.max(1, page);
@@ -198,29 +209,6 @@ public class OrderService {
 				.orElseThrow(() -> new RuntimeException("Order not found"));
 		order.setStatus(status);
 		orderRepository.save(order);
-	}
-
-	@Transactional
-	public void cancelOrder(Long orderId, Long userId) {
-		Order order = orderRepository.findById(orderId)
-				.orElseThrow(() -> new RuntimeException("Đơn hàng không tồn tại"));
-		if (!order.getUser().getId().equals(userId)) {
-			throw new RuntimeException("Bạn không có quyền hủy đơn hàng này");
-		}
-		if (!"unpaid".equals(order.getStatus())) {
-			throw new RuntimeException("Chỉ có thể hủy đơn hàng chưa thanh toán");
-		}
-		Store store = order.getStore();
-		if (store.getOrderStartTime() != null && store.getOrderEndTime() != null) {
-			LocalTime now = LocalTime.now();
-			if (now.isBefore(store.getOrderStartTime()) || now.isAfter(store.getOrderEndTime())) {
-				throw new RuntimeException("Cửa hàng đã đóng cửa. Chỉ hủy đơn trong giờ: "
-						+ store.getOrderStartTime() + " – " + store.getOrderEndTime());
-			}
-		}
-		order.setStatus("cancelled");
-		orderRepository.save(order);
-		log.info("Order cancelled: orderId={}, userId={}", orderId, userId);
 	}
 
 	public void deleteOrder(Long orderId) {

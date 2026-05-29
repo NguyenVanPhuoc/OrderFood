@@ -142,10 +142,7 @@ public class HomeController {
 		User user = userService.findByEmail(principal.getName());
 		List<Order> unpaidOrders = orderService.findUnpaidOrdersByUser(user.getId());
 
-		BigDecimal totalPrice = unpaidOrders.stream()
-				.flatMap(order -> order.getOrderItems().stream())
-				.map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		BigDecimal totalPrice = orderService.calculateUnpaidTotal(user.getId());
 
 		model.addAttribute("orders", unpaidOrders);
 		model.addAttribute("totalPrice", totalPrice);
@@ -171,32 +168,6 @@ public class HomeController {
 		model.addAttribute("status", status);
 		model.addAttribute("contentPage", "/WEB-INF/views/order_history.jsp");
 		model.addAttribute("pageTitle", "Lịch sử đơn hàng");
-		return "templates/main";
-	}
-
-	@PostMapping("/user/orders/{id}/cancel")
-	public String cancelOrder(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
-		try {
-			User user = userService.findByEmail(principal.getName());
-			orderService.cancelOrder(id, user.getId());
-			redirectAttributes.addFlashAttribute("successMessage", "Đơn hàng đã được hủy thành công.");
-		} catch (Exception e) {
-			log.error("Lỗi khi hủy đơn hàng id={}: {}", id, e.getMessage());
-			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-		}
-		return "redirect:/user/orders/" + id;
-	}
-
-	@GetMapping("/user/orders/{id}")
-	public String getOrderDetail(@PathVariable Long id, Model model, Principal principal) {
-		User user = userService.findByEmail(principal.getName());
-		Order order = orderService.getOrderById(id);
-		if (order == null || !order.getUser().getId().equals(user.getId())) {
-			return "redirect:/user/orders/history";
-		}
-		model.addAttribute("order", order);
-		model.addAttribute("contentPage", "/WEB-INF/views/order_detail.jsp");
-		model.addAttribute("pageTitle", "Chi tiết đơn hàng #" + id);
 		return "templates/main";
 	}
 

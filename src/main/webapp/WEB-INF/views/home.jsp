@@ -37,62 +37,8 @@
                 </c:if>
 
               </p>
-              <p class="store-distance" id="distance-${store.id}">Đang lấy vị trí...</p>
             </div>
           </div>
         </a>
       </c:forEach>
     </div>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            function (position) {
-              const latCurrent = position.coords.latitude;
-              const lonCurrent = position.coords.longitude;
-
-              // Lấy tất cả storeId
-              const storeCards = document.querySelectorAll('.restaurant-card');
-              const storeIds = Array.from(storeCards).map(card => card.getAttribute('data-store-id'));
-
-              fetch('/api/list/distances', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  latCurrent: latCurrent,
-                  lonCurrent: lonCurrent,
-                  storeIds: storeIds
-                })
-              })
-                .then(response => response.json())
-                .then(data => {
-                  for (const storeId in data.distances) {
-                    const dist = data.distances[storeId];
-                    const el = document.getElementById("distance-" + storeId);
-                    if (el) {
-                      el.textContent = "Khoản cách: " + dist.toFixed(2) + " km";
-                    }
-                  }
-                })
-                .catch(() => {
-                  storeCards.forEach(card => {
-                    const storeId = card.getAttribute('data-store-id');
-                    document.getElementById("distance-" + storeId).textContent = "Không thể tính.";
-                  });
-                });
-            },
-            function () {
-              document.querySelectorAll('.store-distance').forEach(el => {
-                el.textContent = "Vui lòng bật định vị.";
-              });
-            }
-          );
-        } else {
-          document.querySelectorAll('.store-distance').forEach(el => {
-            el.textContent = "Trình duyệt không hỗ trợ định vị.";
-          });
-        }
-      });
-    </script>

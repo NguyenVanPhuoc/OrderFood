@@ -23,7 +23,6 @@
 
 			<h2 class="page-title">${store.name}</h2>
 			<p>Địa chỉ: ${store.address}</p>
-			<p id="distance"></p>
 
 			<div class="flex-between mt-4">
 				<div class="product-list">
